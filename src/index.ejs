@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <script src="https://cdn.bootcdn.net/ajax/libs/hls.js/8.0.0-beta.3/hls.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dplayer/1.25.1/DPlayer.min.js"></script>
+    <link href="https://cdn.bootcdn.net/ajax/libs/dplayer/1.25.0/DPlayer.min.css" rel="stylesheet">
+    <meta charset="utf-8">
+    <title>tv</title>
+    <% if (htmlWebpackPlugin.options.nodeModules) { %>
+      <!-- Add `node_modules/` to global paths so `require` works properly in development -->
+      <script>
+        require('module').globalPaths.push('<%= htmlWebpackPlugin.options.nodeModules.replace(/\\/g, '\\\\') %>')
+      </script>
+    <% } %>
+  </head>
+  <body>
+    <div id="app"></div>
+    <!-- Set `__static` path to static files in production -->
+    <% if (!process.browser) { %>
+      <script>
+        if (process.env.NODE_ENV !== 'development') window.__static = require('path').join(__dirname, '/static').replace(/\\/g, '\\\\')
+      </script>
+    <% } %>
+
+    <!-- webpack builds are automatically injected -->
+  </body>
+</html>
