@@ -1,10 +1,42 @@
 <template>
   <div id="wrapper">
     <main>
-      <el-select v-model="value" @change="change" placeholder="请选择">
-        <el-option v-for="item in options" :key="item.id" :label="item.label" :value="item.value"></el-option>
-      </el-select>
-      <div id="dplayer"></div>
+      <el-container>
+        <el-header style="padding:0px;">
+          <el-button>IPTV</el-button>
+        </el-header>
+
+        <el-container>
+          <el-aside width="200px" style="margin:20px 0; max-height:420px">
+            <el-menu
+              default-active="1"
+              menu-trigger="click"
+              class="el-menu-vertical-demo"
+              @open="handleOpen"
+              @close="handleClose"
+            >
+              <el-submenu index="1">
+                <template slot="title">
+                  <i class="el-icon-menu"></i>
+                  <span>中国大陆</span>
+                </template>
+                <el-menu-item-group>
+                  <el-menu-item
+                    v-for="item in options"
+                    @click="selectTv(item.value)"
+                    :key="item.id"
+                    :index="item.id"
+                    style="padding: 0 20px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"
+                  >{{item.value}}</el-menu-item>
+                </el-menu-item-group>
+              </el-submenu>
+            </el-menu>
+          </el-aside>
+          <el-main>
+            <div id="dplayer"></div>
+          </el-main>
+        </el-container>
+      </el-container>
     </main>
   </div>
 </template>
@@ -15,7 +47,9 @@ import fs from "fs";
 import parser from "iptv-playlist-parser";
 import DPlayer from "dplayer";
 import path from "path";
-const playlist = fs.readFileSync(path.join(__static,"zho.m3u"), { encoding: "utf-8" });
+const playlist = fs.readFileSync(path.join(__static, "zho.m3u"), {
+  encoding: "utf-8"
+});
 const result = parser.parse(playlist);
 
 //console.log(result)
@@ -38,18 +72,16 @@ export default {
         lable: result.items[i]["url"]
       });
     }
-    console.log(arr, "111111111111111111112222");
+    arr = Array.from(new Set(arr));
+    console.log("arr", arr);
     this.options = arr;
   },
   methods: {
     open(link) {
       this.$electron.shell.openExternal(link);
     },
-    change(t) {
+    /*change(t) {
       console.log(t);
-      console.log(
-        (this.options.find(option => option.value === t) || {}).lable
-      );
       this.url = (this.options.find(option => option.value === t) || {}).lable;
       const dp = new DPlayer({
         container: document.getElementById("dplayer"),
@@ -64,6 +96,27 @@ export default {
         }
       });
       console.log(dp.plugins.hls); // Hls 实例
+    },*/
+    selectTv(t) {
+      this.url = (this.options.find(option => option.value === t) || {}).lable;
+      const dp = new DPlayer({
+        container: document.getElementById("dplayer"),
+        video: {
+          url: this.url,
+          type: "hls"
+        },
+        pluginOptions: {
+          hls: {
+            // hls config
+          }
+        }
+      });
+    },
+    handleOpen(key, keyPath) {
+      console.log(key, keyPath);
+    },
+    handleClose(key, keyPath) {
+      console.log(key, keyPath);
     }
   }
 };
@@ -89,7 +142,7 @@ body {
     rgba(229, 229, 229, 0.9) 100%
   );
   height: 100vh;
-  padding: 60px 80px;
+  padding: 20px 20px;
   width: 100vw;
 }
 
@@ -153,5 +206,13 @@ main > div {
 .doc button.alt {
   color: #42b983;
   background-color: transparent;
+}
+</style>
+
+<style>
+#dplayer {
+  background: #2c3e50;
+  width: 720px;
+  height: 420px;
 }
 </style>
