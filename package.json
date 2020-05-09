@@ -58,6 +58,7 @@
     "dplayer": "^1.25.1",
     "element-ui": "^2.13.1",
     "iptv-playlist-parser": "^0.4.2",
+    "request": "^2.88.2",
     "vue": "^2.5.16",
     "vue-electron": "^1.0.6",
     "vue-router": "^3.0.1",

@@ -5,7 +5,6 @@
         <el-header style="padding:0px;">
           <el-button>IPTV</el-button>
         </el-header>
-
         <el-container>
           <el-aside width="200px" style="margin:20px 0; max-height:420px">
             <el-menu
@@ -19,6 +18,21 @@
                 <template slot="title">
                   <i class="el-icon-menu"></i>
                   <span>中国大陆</span>
+                </template>
+                <el-menu-item-group>
+                  <el-menu-item
+                    v-for="item in options"
+                    @click="selectTv(item.value)"
+                    :key="item.id"
+                    :index="item.id"
+                    style="padding: 0 20px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"
+                  >{{item.value}}</el-menu-item>
+                </el-menu-item-group>
+              </el-submenu>
+              <el-submenu index="2">
+                <template slot="title">
+                  <i class="el-icon-menu"></i>
+                  <span>虎牙直播</span>
                 </template>
                 <el-menu-item-group>
                   <el-menu-item
@@ -47,11 +61,24 @@ import fs from "fs";
 import parser from "iptv-playlist-parser";
 import DPlayer from "dplayer";
 import path from "path";
+import request from 'request'
 const playlist = fs.readFileSync(path.join(__static, "zho.m3u"), {
   encoding: "utf-8"
 });
 const result = parser.parse(playlist);
-
+var hy_data
+function getData(){
+ return request({url:'https://m.huya.com/cache.php?m=Live&do=ajaxGetProfileLive&page=1&pageSize=120',
+  "headers":{
+    "User-Agent":"Mozilla/5.0 (iPhone; CPU iPhone OS 13_2_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.0.3 Mobile/15E148 Safari/604.1"
+  }
+  }, function (error, response, body) {
+  if (!error && response.statusCode == 200) {
+    console.log("我这里赋值了")
+    hy_data=body
+  }
+})
+}
 //console.log(result)
 export default {
   name: "landing-page",
@@ -64,7 +91,9 @@ export default {
     };
   },
   created: function() {
-    console.log("wozhixingl", result);
+    console.log("wozhixingl", result,111);
+    getData();
+console.log("qqqqqqqqq",hy_data)
     let arr = [];
     for (let i = 0; i < result.items.length; i++) {
       arr.push({
@@ -73,7 +102,7 @@ export default {
       });
     }
     arr = Array.from(new Set(arr));
-    console.log("arr", arr);
+    console.log("arr", hy_data);
     this.options = arr;
   },
   methods: {
