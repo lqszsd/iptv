@@ -61,7 +61,7 @@ import fs from "fs";
 import parser from "iptv-playlist-parser";
 import DPlayer from "dplayer";
 import path from "path";
-import request from 'request'
+import request from "request";
 const playlist = fs.readFileSync(path.join(__static, "zho.m3u"), {
   encoding: "utf-8"
 });
@@ -75,33 +75,26 @@ export default {
       options: [],
       value: "",
       url: "",
-      data:[]
+      data: {}
     };
   },
-  created: function() {
-    request({url:'https://m.huya.com/cache.php?m=Live&do=ajaxGetProfileLive&page=1&pageSize=120',
-  "headers":{
-    "User-Agent":"Mozilla/5.0 (iPhone; CPU iPhone OS 13_2_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.0.3 Mobile/15E148 Safari/604.1"
-  }
-  }, function (error, response, body) {
-  if (!error && response.statusCode == 200) {
-    console.log("我这里赋值了")
-    this.vue.data=body
-     console.log("我这里赋值了",this.data)
-  }
-})
-console.log(111111111111,this.data)
-    let arr = [];
-    for (let i = 0; i < result.items.length; i++) {
-      arr.push({
-        value: result.items[i]["name"],
-        lable: result.items[i]["url"]
-      });
-    }
-    arr = Array.from(new Set(arr));
-    this.options = arr;
+  created: async function() {
+    this.init();
+    // let arr = [];
+    // for (let i = 0; i < result.items.length; i++) {
+    //   arr.push({
+    //     value: result.items[i]["name"],
+    //     lable: result.items[i]["url"]
+    //   });
+    // }
+    // arr = Array.from(new Set(arr));
+    // this.options = arr;
   },
   methods: {
+    init: async function() {
+      this.data = await this.getHyData();
+      console.log(this.data);
+    },
     open(link) {
       this.$electron.shell.openExternal(link);
     },
@@ -142,6 +135,28 @@ console.log(111111111111,this.data)
     },
     handleClose(key, keyPath) {
       console.log(key, keyPath);
+    },
+    getTvData() {},
+    getHyData() {
+      // 返回一个promise对象
+      return new Promise((resolve, reject) => {
+        request(
+          {
+            url:
+              "https://m.huya.com/cache.php?m=Live&do=ajaxGetProfileLive&page=1&pageSize=120",
+            headers: {
+              "User-Agent":
+                "Mozilla/5.0 (iPhone; CPU iPhone OS 13_2_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.0.3 Mobile/15E148 Safari/604.1"
+            }
+          },
+          function(error, response, body) {
+            if (!error && response.statusCode == 200) {
+              let data = JSON.parse(body);
+              resolve(data);
+            }
+          }
+        );
+      });
     }
   }
 };
