@@ -34,15 +34,6 @@
                   <i class="el-icon-menu"></i>
                   <span>虎牙直播</span>
                 </template>
-                <el-menu-item-group>
-                  <el-menu-item
-                    v-for="item in options"
-                    @click="selectTv(item.value)"
-                    :key="item.id"
-                    :index="item.id"
-                    style="padding: 0 20px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"
-                  >{{item.value}}</el-menu-item>
-                </el-menu-item-group>
               </el-submenu>
             </el-menu>
           </el-aside>
@@ -80,20 +71,20 @@ export default {
   },
   created: async function() {
     this.init();
-    // let arr = [];
-    // for (let i = 0; i < result.items.length; i++) {
-    //   arr.push({
-    //     value: result.items[i]["name"],
-    //     lable: result.items[i]["url"]
-    //   });
-    // }
-    // arr = Array.from(new Set(arr));
-    // this.options = arr;
+    let arr = [];
+    for (let i = 0; i < result.items.length; i++) {
+      arr.push({
+        value: result.items[i]["name"],
+        lable: result.items[i]["url"]
+      });
+    }
+    arr = Array.from(new Set(arr));
+    this.options = arr;
   },
   methods: {
     init: async function() {
       this.data = await this.getHyData();
-      console.log(this.data);
+      console.log(11111111111,this.data);
     },
     open(link) {
       this.$electron.shell.openExternal(link);
@@ -164,17 +155,14 @@ export default {
 
 <style>
 @import url("https://fonts.googleapis.com/css?family=Source+Sans+Pro");
-
 * {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
 }
-
 body {
   font-family: "Source Sans Pro", sans-serif;
 }
-
 #wrapper {
   background: radial-gradient(
     ellipse at top left,
@@ -185,50 +173,41 @@ body {
   padding: 20px 20px;
   width: 100vw;
 }
-
 #logo {
   height: auto;
   margin-bottom: 20px;
   width: 420px;
 }
-
 main {
   display: flex;
   justify-content: space-between;
 }
-
 main > div {
   flex-basis: 50%;
 }
-
 .left-side {
   display: flex;
   flex-direction: column;
 }
-
 .welcome {
   color: #555;
   font-size: 23px;
   margin-bottom: 10px;
 }
-
 .title {
   color: #2c3e50;
   font-size: 20px;
   font-weight: bold;
   margin-bottom: 6px;
 }
-
 .title.alt {
   font-size: 18px;
   margin-bottom: 10px;
 }
-
 .doc p {
   color: black;
   margin-bottom: 10px;
 }
-
 .doc button {
   font-size: 0.8em;
   cursor: pointer;
@@ -242,7 +221,6 @@ main > div {
   box-sizing: border-box;
   border: 1px solid #4fc08d;
 }
-
 .doc button.alt {
   color: #42b983;
   background-color: transparent;
