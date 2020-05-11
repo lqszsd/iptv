@@ -34,6 +34,15 @@
                   <i class="el-icon-menu"></i>
                   <span>虎牙直播</span>
                 </template>
+                <el-menu-item-group>
+                  <el-menu-item
+                    v-for="item in data.gameList"
+                    @click="selectHuya(item.profileRoom)"
+                    :key="item.id"
+                    :index="item.id"
+                    style="padding: 0 20px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"
+                  >{{item.introduction}}</el-menu-item>
+                </el-menu-item-group>
               </el-submenu>
             </el-menu>
           </el-aside>
@@ -53,6 +62,7 @@ import parser from "iptv-playlist-parser";
 import DPlayer from "dplayer";
 import path from "path";
 import request from "request";
+import cheerio from "cheerio";
 const playlist = fs.readFileSync(path.join(__static, "zho.m3u"), {
   encoding: "utf-8"
 });
@@ -64,9 +74,11 @@ export default {
   data() {
     return {
       options: [],
+      huya: [],
       value: "",
       url: "",
-      data: {}
+      data: {},
+      page: 1
     };
   },
   created: async function() {
@@ -84,7 +96,7 @@ export default {
   methods: {
     init: async function() {
       this.data = await this.getHyData();
-      console.log(11111111111,this.data);
+      console.log(11111111111, this.data["gameList"]);
     },
     open(link) {
       this.$electron.shell.openExternal(link);
@@ -121,6 +133,26 @@ export default {
         }
       });
     },
+    selectHuya(t) {
+      console.log(t);
+       const dp = new DPlayer({
+        container: document.getElementById("dplayer"),
+        video: {
+          url: "http:"+this.wait(t),
+          type: "hls"
+        },
+         autoplay:true,//自动播放
+      live:true,//直播视频形式
+        pluginOptions: {
+          hls: {
+            // hls config
+          }
+        }
+      });
+    },
+    wait:async function(t){
+      return await this.getHyDataInfo(t)
+    },
     handleOpen(key, keyPath) {
       console.log(key, keyPath);
     },
@@ -143,6 +175,28 @@ export default {
           function(error, response, body) {
             if (!error && response.statusCode == 200) {
               let data = JSON.parse(body);
+              resolve(data);
+            }
+          }
+        );
+      });
+    },
+    getHyDataInfo(t) {
+      // 返回一个promise对象
+      return new Promise((resolve, reject) => {
+        request(
+          {
+            url: "https://m.huya.com/" + t,
+            headers: {
+              "User-Agent":
+                "Mozilla/5.0 (iPhone; CPU iPhone OS 13_2_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.0.3 Mobile/15E148 Safari/604.1"
+            }
+          },
+          function(error, response, body) {
+            if (!error && response.statusCode == 200) {
+              var $ = cheerio.load(body);
+              let data = $("#html5player-video").attr("src");
+              console.log(data)
               resolve(data);
             }
           }
