@@ -63,11 +63,11 @@ import DPlayer from "dplayer";
 import path from "path";
 import request from "request";
 import cheerio from "cheerio";
-const playlist = fs.readFileSync(path.join(__static, "zho.m3u"), {
-  encoding: "utf-8"
-});
-const result = parser.parse(playlist);
-//console.log(result)
+// const playlist = fs.readFileSync(path.join(__static, "zho.m3u"), {
+//   encoding: "utf-8"
+// });
+// const result = parser.parse(playlist);
+// console.log(result);
 export default {
   name: "landing-page",
   components: { SystemInformation },
@@ -85,7 +85,7 @@ export default {
   },
   watch: {
     videourl: (url, oldurl) => {
-      console.log(url, oldurl)
+      console.log(url, oldurl);
       let dp = new DPlayer({
         container: document.getElementById("dplayer"),
         video: {
@@ -102,109 +102,106 @@ export default {
       });
     }
   },
-  created: async function() {
+  created: function() {
     this.init();
-    let arr = [];
-    for (let i = 0; i < result.items.length; i++) {
-      arr.push({
-        value: result.items[i]["name"],
-        lable: result.items[i]["url"]
-      });
-    }
-    arr = Array.from(new Set(arr));
-    this.options = arr;
   },
   methods: {
-    init: async function() {
-      this.data = await this.getHyData();
+    init: function() {
+      this.getTvData();
+      this.getHyData();
     },
     open(link) {
       this.$electron.shell.openExternal(link);
     },
-    /*change(t) {
-      console.log(t);
-      this.url = (this.options.find(option => option.value === t) || {}).lable;
-      const dp = new DPlayer({
-        container: document.getElementById("dplayer"),
-        video: {
-          url: this.url,
-          type: "hls"
-        },
-        pluginOptions: {
-          hls: {
-            // hls config
-          }
-        }
-      });
-      console.log(dp.plugins.hls); // Hls 实例
-    },*/
-    selectTv(t) {
-      this.url = (this.options.find(option => option.value === t) || {}).lable;
-      const dp = new DPlayer({
-        container: document.getElementById("dplayer"),
-        video: {
-          url: this.url,
-          type: "hls"
-        },
-        pluginOptions: {
-          hls: {
-            // hls config
-          }
-        }
-      });
-    },
-    selectHuya:async function(t) {
-      this.videourl = await this.getHyDataInfo(t);
-    },
     handleOpen(key, keyPath) {
-      console.log(key, keyPath);
+      // console.log(key, keyPath);
+      if (key == "1" && this.options.length == "0") {
+        return this.$message("正在解析TV频道请稍后");
+      }
     },
     handleClose(key, keyPath) {
-      console.log(key, keyPath);
+      // console.log(key, keyPath);
     },
-    getTvData() {},
-    getHyData() {
-      // 返回一个promise对象
-      return new Promise((resolve, reject) => {
-        request(
-          {
-            url:
-              "https://m.huya.com/cache.php?m=Live&do=ajaxGetProfileLive&page=1&pageSize=120",
-            headers: {
-              "User-Agent":
-                "Mozilla/5.0 (iPhone; CPU iPhone OS 13_2_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.0.3 Mobile/15E148 Safari/604.1"
-            }
-          },
-          function(error, response, body) {
-            if (!error && response.statusCode == 200) {
-              let data = JSON.parse(body);
-              resolve(data);
-            }
+    // 获取全部电视
+    getTvData() {
+      // https://iptv-org.github.io/iptv/languages/zho.m3u
+      this.requestFun({
+        url: "https://iptv-org.github.io/iptv/languages/zho.m3u"
+      })
+        .then(res => {
+          let result = parser.parse(res);
+          let arr = [];
+          for (let i = 0; i < result.items.length; i++) {
+            arr.push({
+              value: result.items[i]["name"],
+              lable: result.items[i]["url"]
+            });
           }
-        );
-      });
+          this.options = arr;
+        })
+        .catch(err => {
+          console.log(err);
+          this.$message("请求出错，请检查网络！");
+        });
     },
-    getHyDataInfo(t) {
-      console.log(t);
-      // 返回一个promise对象
+    //选择TV台
+    selectTv(t) {
+      this.videourl = (
+        this.options.find(option => option.value === t) || {}
+      ).lable;
+    },
+    //获取虎牙全部直播
+    getHyData() {
+      this.requestFun({
+        url:
+          "https://m.huya.com/cache.php?m=Live&do=ajaxGetProfileLive&page=1&pageSize=120"
+      })
+        .then(res => {
+          this.data = JSON.parse(res);
+        })
+        .catch(err => {
+          console.log(err);
+          this.$message("请求出错，请检查网络！");
+        });
+    },
+    //点击更改虎牙播放视频链接
+    selectHuya(t) {
+      this.requestFun({
+        url: "https://m.huya.com/" + t
+      })
+        .then(res => {
+          var $ = cheerio.load(res);
+          let data = $("#html5player-video").attr("src");
+          data = data.replace("_2500", "");
+          data = data.replace("hw.hls", "al.hls");
+          this.videourl = data;
+        })
+        .catch(err => {
+          console.log(err);
+          this.$message("请求出错，请检查网络！");
+        });
+    },
+    requestFun(params) {
+      let {
+        url,
+        method = "GET",
+        headers = {
+          "User-Agent":
+            "Mozilla/5.0 (iPhone; CPU iPhone OS 13_2_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.0.3 Mobile/15E148 Safari/604.1"
+        }
+      } = params;
       return new Promise((resolve, reject) => {
         request(
           {
-            url: "https://m.huya.com/" + t,
-            headers: {
-              "User-Agent":
-                "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko)"
-            }
+            url,
+            method,
+            headers
           },
           function(error, response, body) {
             if (!error && response.statusCode == 200) {
-              var $ = cheerio.load(body);
-              let data = $("#html5player-video").attr("src");
-              console.log("data1", data);
-              data = data.replace("_2500", "");
-              data = data.replace("hw.hls", "al.hls");
-              // console.log("data2",data);
-              resolve(data);
+              resolve(body);
+            } else {
+              reject(error);
             }
           }
         );
