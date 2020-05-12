@@ -78,7 +78,8 @@ export default {
       value: "",
       url: "",
       data: {},
-      page: 1
+      page: 1,
+      m:{}
     };
   },
   created: async function() {
@@ -134,7 +135,7 @@ export default {
       });
     },
     selectHuya(t) {
-      console.log(t);
+      console.log(this.m);
        const dp = new DPlayer({
         container: document.getElementById("dplayer"),
         video: {
@@ -151,7 +152,7 @@ export default {
       });
     },
     wait:async function(t){
-      return await this.getHyDataInfo(t)
+       return await this.getHyDataInfo(t)
     },
     handleOpen(key, keyPath) {
       console.log(key, keyPath);
@@ -182,6 +183,7 @@ export default {
       });
     },
     getHyDataInfo(t) {
+      console.log(t)
       // 返回一个promise对象
       return new Promise((resolve, reject) => {
         request(
@@ -189,13 +191,16 @@ export default {
             url: "https://m.huya.com/" + t,
             headers: {
               "User-Agent":
-                "Mozilla/5.0 (iPhone; CPU iPhone OS 13_2_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.0.3 Mobile/15E148 Safari/604.1"
+                "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko)"
             }
           },
           function(error, response, body) {
             if (!error && response.statusCode == 200) {
               var $ = cheerio.load(body);
               let data = $("#html5player-video").attr("src");
+              console.log(data)
+              data=data.replace("_[\s\S]*.m3u8",".m3u8")
+              data=data.replace("hw.hls","al.hls")
               console.log(data)
               resolve(data);
             }
