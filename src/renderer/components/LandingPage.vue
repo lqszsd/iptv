@@ -126,7 +126,8 @@ export default {
     getTvData() {
       // https://iptv-org.github.io/iptv/languages/zho.m3u
       this.requestFun({
-        url: "https://iptv-org.github.io/iptv/languages/zho.m3u"
+        url: "https://iptv-org.github.io/iptv/languages/zho.m3u",
+        timeout: 70000
       })
         .then(res => {
           let result = parser.parse(res);
@@ -174,7 +175,7 @@ export default {
           let data = $("#html5player-video").attr("src");
           data = data.replace("_2500", "");
           data = data.replace("hw.hls", "al.hls");
-          this.videourl = data;
+          this.videourl = "https://" + data;
         })
         .catch(err => {
           console.log(err);
@@ -188,14 +189,16 @@ export default {
         headers = {
           "User-Agent":
             "Mozilla/5.0 (iPhone; CPU iPhone OS 13_2_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.0.3 Mobile/15E148 Safari/604.1"
-        }
+        },
+        timeout = 7000
       } = params;
       return new Promise((resolve, reject) => {
         request(
           {
             url,
             method,
-            headers
+            headers,
+            timeout
           },
           function(error, response, body) {
             if (!error && response.statusCode == 200) {
