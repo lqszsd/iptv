@@ -79,8 +79,28 @@ export default {
       url: "",
       data: {},
       page: 1,
-      m:{}
+      m: {},
+      videourl: "" //
     };
+  },
+  watch: {
+    videourl: (url, oldurl) => {
+      console.log(url, oldurl)
+      let dp = new DPlayer({
+        container: document.getElementById("dplayer"),
+        video: {
+          url,
+          type: "hls"
+        },
+        autoplay: true, //自动播放
+        live: true, //直播视频形式
+        pluginOptions: {
+          hls: {
+            // hls config
+          }
+        }
+      });
+    }
   },
   created: async function() {
     this.init();
@@ -97,7 +117,6 @@ export default {
   methods: {
     init: async function() {
       this.data = await this.getHyData();
-      console.log(11111111111, this.data["gameList"]);
     },
     open(link) {
       this.$electron.shell.openExternal(link);
@@ -134,25 +153,8 @@ export default {
         }
       });
     },
-    selectHuya(t) {
-      console.log(this.m);
-       const dp = new DPlayer({
-        container: document.getElementById("dplayer"),
-        video: {
-          url: "http:"+this.wait(t),
-          type: "hls"
-        },
-         autoplay:true,//自动播放
-      live:true,//直播视频形式
-        pluginOptions: {
-          hls: {
-            // hls config
-          }
-        }
-      });
-    },
-    wait:async function(t){
-       return await this.getHyDataInfo(t)
+    selectHuya:async function(t) {
+      this.videourl = await this.getHyDataInfo(t);
     },
     handleOpen(key, keyPath) {
       console.log(key, keyPath);
@@ -183,7 +185,7 @@ export default {
       });
     },
     getHyDataInfo(t) {
-      console.log(t)
+      console.log(t);
       // 返回一个promise对象
       return new Promise((resolve, reject) => {
         request(
@@ -198,10 +200,10 @@ export default {
             if (!error && response.statusCode == 200) {
               var $ = cheerio.load(body);
               let data = $("#html5player-video").attr("src");
-              console.log(data)
-              data=data.replace("_[\s\S]*.m3u8",".m3u8")
-              data=data.replace("hw.hls","al.hls")
-              console.log(data)
+              console.log("data1", data);
+              data = data.replace("_2500", "");
+              data = data.replace("hw.hls", "al.hls");
+              // console.log("data2",data);
               resolve(data);
             }
           }
